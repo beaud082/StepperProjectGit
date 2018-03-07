@@ -17,6 +17,7 @@ private:
 unsigned int lastpolltime;
 int sensorreading;
 int p1;
+int i;
 double convertedsensorreading; //converts from input to voltage
 };
 

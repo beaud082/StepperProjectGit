@@ -1,9 +1,12 @@
-
-#include "application.h"
 #include "stepper.h"
 #include "motor_config.h"
 
-stepper stepperarray [] = {stepper(Motor1_StepPin, Motor1_DirPin, 100), stepper(Motor1_StepPin, Motor2_DirPin, 100)};
+stepper stepperarray [] = {
+  stepper(Motor1_StepPin, Motor1_DirPin, 100),
+  stepper(Motor2_StepPin, Motor2_DirPin, 100)/*,
+  stepper(Motor3_StepPin, Motor3_DirPin, 100),
+  stepper(Motor4_StepPin, Motor4_DirPin, 100)*/
+  };
 
 void stepperSetup()
 {
@@ -13,6 +16,7 @@ void stepperSetup()
   pinMode(Motor2_DirPin, OUTPUT);
   pinMode(Motor2_StepPin, OUTPUT);
 }
+
 
 
 
@@ -26,16 +30,13 @@ os_thread_return_t stepperMovement(void*)
     {
         stepperarray[i].checkCommands();
     }
-    delay(1);
+    delay(threadResolution);
     }while (true);
 
 }
 //////////////////////////////////////////
 /// END MULTITHREADING IMPLEMENTATION  ///
 //////////////////////////////////////////
-
-
-
 
 
 

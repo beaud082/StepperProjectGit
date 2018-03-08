@@ -15,5 +15,5 @@
 //#define Motor4_StepPin D7
 //#define Motor4_DirPin  D6
 
-#define threadResolution 1 //thread delay in ms
+#define threadResolution 1 //thread delay in ms, this is the minimum time between signal pulses for a stepper motor
 #endif

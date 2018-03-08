@@ -1,3 +1,5 @@
+#include "application.h"
+
 #ifndef STEPPER_H
 #define STEPPER_H
 class stepper

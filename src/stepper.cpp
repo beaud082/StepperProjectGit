@@ -1,4 +1,5 @@
 #include "stepper.h"
+#include "application.h"
 #include "motor_config.h"
 
 stepper stepperarray [] = {
@@ -10,60 +11,102 @@ stepper stepperarray [] = {
 
 void stepperSetup()
 {
-  stepperMovementThread = new Thread("stepper_movement", stepperMovement);
   pinMode(Motor1_DirPin, OUTPUT);
   pinMode(Motor1_StepPin, OUTPUT);
   pinMode(Motor2_DirPin, OUTPUT);
   pinMode(Motor2_StepPin, OUTPUT);
 }
 
-
-
-
-//////////////////////////////////////////
-///    MULTITHREADING IMPLEMENTATION   ///
-//////////////////////////////////////////
-os_thread_return_t stepperMovement(void*)
+void motor_array_movement_backend()
 {
-    do{
-    for (int i = 0; i<NUMBER_OF_MOTORS; i++)
-    {
-        stepperarray[i].checkCommands();
-    }
-    delay(threadResolution);
-    }while (true);
+  do{
+  for (int i = 0; i<NUMBER_OF_MOTORS; i++)
+  {
+      stepperarray[i].stepper_backend();
+  }
+  delayMicroseconds(threadResolution);
+  }while (true);
 
 }
-//////////////////////////////////////////
-/// END MULTITHREADING IMPLEMENTATION  ///
-//////////////////////////////////////////
-
 
 
 
 ////////////////////////////////////////////
 /////    STEPPER CLASS IPLEMENTATION   /////
 ////////////////////////////////////////////
-stepper::stepper(int p1, int p2, unsigned int s)
+stepper::stepper(int p1, int p2, double s)
 {
     steppin = p1;
     dirpin = p2;
-    speed = s;
+    speed = 500000.0/s;
     stepLow();
     stepstotake = 0;
-    oldmillis=0;
+    oldmicros=0;
 }
-void stepper::moveMotor(int s)
+void stepper::moveSteps(int s)
 {
     stepstotake = s;
 }
-void stepper::checkCommands()
+void stepper::moveRadians(double s)
 {
-    if (millis() - oldmillis >= speed)
+    stepstotake = s*steps_per_radian;
+}
+
+void stepper::setStepsPerSecondSpeed(double s) //speed in steps per second
+{
+    speed = 500000.0/s;
+}
+
+void stepper::setRadiansPerSecondSpeed(double s) //speed in radians per second
+{
+    setStepsPerSecondSpeed(steps_per_radian*s);
+}
+
+bool stepper::isBusy()
+{
+    if(stepstotake != 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void stepper::stepper_backend()
+{
+  loadNextCommand();
+  runCurrentCommand();
+  checkCommandCompletion();
+}
+void stepper::loadNextCommand()
+{
+  if(!isBusy())
+  {
+    if(!commandlist.empty())
     {
 
-
-      oldmillis = millis();
+      moveRadians(commandlist[0][0]);
+      setRadiansPerSecondSpeed(commandlist[0][1]);
+    }
+  }
+}
+void stepper::checkCommandCompletion()
+{
+  if(!isBusy())
+  {
+    if(!commandlist.empty())
+    {
+      commandlist.erase(commandlist.begin());
+    }
+  }
+}
+void stepper::runCurrentCommand()
+{
+    if (micros() - oldmicros >= speed)
+    {
+      oldmicros = micros();
 
       if(pinstate)
       {
@@ -92,22 +135,6 @@ void stepper::checkCommands()
        }
     }
 }
-void stepper::setSpeed(unsigned int s)
-{
-    speed = 1/s;
-}
-bool stepper::isBusy()
-{
-    if(stepstotake != 0)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
 void stepper::takeStep()
 {
     pinResetFast(dirpin);

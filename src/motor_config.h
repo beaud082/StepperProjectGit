@@ -15,5 +15,6 @@
 //#define Motor4_StepPin D7
 //#define Motor4_DirPin  D6
 
-#define threadResolution 1 //thread delay in ms, this is the minimum time between signal pulses for a stepper motor
+#define steps_per_radian 31.831
+#define threadResolution 1000 //thread delay in us, calculate 1/(2*(threadResolution/1000000), to find steps/s resolution limit
 #endif
